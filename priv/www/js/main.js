@@ -78,13 +78,14 @@ $(document).ready(function() {
                                 oauth2_logout();
                             }
                         }
-                        if(user){
-                            oauth2_login();
-                        } else {
-                            replace_content('outer', format('login_uaa', {}));
-                            replace_content('login-status', '<p class="success">' + uaa_location + " appear to be a running IdentityServer instance."  + 
-                                                            '</p> <button id="loginWindow" style="text-align: center; margin: 0 auto;" onclick="oauth2_login()">Log in</button>');
-                        };
+                        oauth2_login();
+                        // if(user){
+                        //     oauth2_login();
+                        // } else {
+                        //     replace_content('outer', format('login_uaa', {}));
+                        //     replace_content('login-status', '<p class="success">' + uaa_location + " appear to be a running IdentityServer instance."  + 
+                        //                                     '</p> <button id="loginWindow" style="text-align: center; margin: 0 auto;" onclick="oauth2_login()">Log in</button>');
+                        // };
                     });
                 };
             });
@@ -261,11 +262,21 @@ function check_login() {
                     replace_content('login-status', '<button id="loginWindow" onclick="oauth2_login()">Log out</button>');
                 break;
                 case identityServer_oauth2_implementation:
-                    // todo: OpenId client logout!
-                    replace_content('login-status', '<p>Login failed</p>');
+                    oidcClient = new Oidc.UserManager(oidcClientSettings);
+                    oidcClient.getUser().then(function(user){
+                        if (user){
+                            user.token
+                            oidcClient.removeUser().then(function() {
+                                replace_content('outer', format('login_uaa', {}));
+                                replace_content('login-status', '<p class="warning">' + " Unauthorized access! User Logged out!"  + 
+                                                                '</p> <button id="loginWindow" style="text-align: center; margin: 0 auto;" onclick="oauth2_login()">Log in</button>');
+                                console.log("Unauthorized access - user logout.");
+                            });
+                        }
+                    });
                 break;
                 default:
-                enable_uaa = false;
+                    enable_uaa = false;
             }
         } else {
             replace_content('login-status', '<p>Login failed</p>');

@@ -17,7 +17,7 @@
     <script src="js/prefs.js" type="text/javascript"></script>
     <script src="js/formatters.js" type="text/javascript"></script>
     <script src="js/charts.js" type="text/javascript"></script>
-    <script src="js/singular/singular.js" type="application/javascript"></script>    
+    <script src="js/singular/singular.js" type="application/javascript"></script> 
     <link href="css/main.css" rel="stylesheet" type="text/css"/>
     <link href="favicon.ico" rel="shortcut icon" type="image/x-icon"/>
     
@@ -26,11 +26,10 @@
       var uaa_invalid = false;
       var auth = JSON.parse(sync_get('/auth'));
       enable_uaa = auth.enable_uaa;
-      oauth2_implementation = auth.oauth2_implementation;
       uaa_client_id = auth.uaa_client_id;
       uaa_location = auth.uaa_location;
       oauth2_scopes = auth.oauth2_scopes;
-      oauth2_implementation = oauth2_implementation.toLowerCase()
+      oauth2_implementation = auth.oauth2_implementation.toLowerCase();
       
       if (enable_uaa) {
         switch (oauth2_implementation) {
