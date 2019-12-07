@@ -3132,6 +3132,7 @@ oauth_test(Config) ->
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map1)),
     ?assertEqual(<<>>, maps:get(uaa_location, Map1)),
     ?assertEqual(uaa, maps:get(oauth2_implementation, Map1)),
+    
     %% UAA Misconfiguration Part 1
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
                                  [rabbitmq_management, enable_uaa, true]),
@@ -3152,7 +3153,7 @@ oauth_test(Config) ->
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
                                  [rabbitmq_management, enable_uaa, true]),
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
-                                 [rabbitmq_management, oauth2_implementation, in]),
+                                 [rabbitmq_management, oauth2_implementation, in    ]),
     Map2 = http_get(Config, "/auth", ?OK),
     ?assertEqual(false, maps:get(enable_uaa, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map2)),
