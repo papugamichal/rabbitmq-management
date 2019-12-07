@@ -3131,35 +3131,16 @@ oauth_test(Config) ->
     ?assertEqual(false, maps:get(enable_uaa, Map1)),
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map1)),
     ?assertEqual(<<>>, maps:get(uaa_location, Map1)),
-    ?assertEqual(<<>>, maps:get(oauth2_scopes, Map1)),
     ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
-    %% UAA Misconfiguration Part 1
+    %% UAA Misconfiguration - Missings params - Client_Id, UAA_Location
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
                                  [rabbitmq_management, enable_uaa, true]),
     Map2 = http_get(Config, "/auth", ?OK),
     ?assertEqual(false, maps:get(enable_uaa, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_location, Map2)),
-    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
-    %% UAA Misconfiguration Part 2
-    rabbit_ct_broker_helpers:rpc(Config, 0, application, unset_env,
-                                 [rabbitmq_management, oauth2_implementation]),
-    Map2 = http_get(Config, "/auth", ?OK),
-    ?assertEqual(false, maps:get(enable_uaa, Map2)),
-    ?assertEqual(<<>>, maps:get(uaa_client_id, Map2)),
-    ?assertEqual(<<>>, maps:get(uaa_location, Map2)),
-    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
-    %% IdentityServer Misconfiguration Part 1
-    rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
-                                 [rabbitmq_management, enable_uaa, true]),
-    rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
-                                 [rabbitmq_management, oauth2_implementation, in    ]),
-    Map2 = http_get(Config, "/auth", ?OK),
-    ?assertEqual(false, maps:get(enable_uaa, Map2)),
-    ?assertEqual(<<>>, maps:get(uaa_client_id, Map2)),
-    ?assertEqual(<<>>, maps:get(uaa_location, Map2)),
-    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
-    %% Valid config
+    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map2)),
+    %% Valid UAA config
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
                                  [rabbitmq_management, uaa_client_id, "rabbit_user"]),
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
@@ -3168,9 +3149,37 @@ oauth_test(Config) ->
     ?assertEqual(true, maps:get(enable_uaa, Map3)),
     ?assertEqual(<<"rabbit_user">>, maps:get(uaa_client_id, Map3)),
     ?assertEqual(<<"http://localhost:8080/uaa">>, maps:get(uaa_location, Map3)),
-    %% cleanup
+    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map3)),
+    %% Cleanup after UAA
     rabbit_ct_broker_helpers:rpc(Config, 0, application, unset_env,
-                                 [rabbitmq_management, enable_uaa]).
+                                [rabbitmq_management, uaa_client_id]),
+    rabbit_ct_broker_helpers:rpc(Config, 0, application, unset_env,
+                                [rabbitmq_management, uaa_location]),
+    rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
+                                [rabbitmq_management, oauth2_implementation, identityserver]),
+    %% IdentityServer Misconfiguration - Missings params - Client_Id, UAA_Location, OAuth2_Scopes
+    Map4 = http_get(Config, "/auth", ?OK),
+    ?assertEqual(false, maps:get(enable_uaa, Map4)),
+    ?assertEqual(<<>>, maps:get(uaa_client_id, Map4)),
+    ?assertEqual(<<>>, maps:get(uaa_location, Map4)),
+    ?assertEqual(<<>>, maps:get(oauth2_scopes, Map4)),
+    ?assertEqual(<<"identityserver">>, maps:get(oauth2_implementation, Map4)),
+    %% Valid IdentityServer config
+    rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
+                                 [rabbitmq_management, uaa_client_id, "rabbit_user"]),
+    rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
+                                 [rabbitmq_management, uaa_location, "http://localhost:5000/identityserver"]),
+    rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
+                                 [rabbitmq_management, oauth2_scopes, "rabbit_user.read:*/* rabbit_user.write:*/*"]),
+    Map5 = http_get(Config, "/auth", ?OK),
+    ?assertEqual(true, maps:get(enable_uaa, Map5)),
+    ?assertEqual(<<"rabbit_user">>, maps:get(uaa_client_id, Map5)),
+    ?assertEqual(<<"http://localhost:5000/identityserver">>, maps:get(uaa_location, Map5)),
+    ?assertEqual(<<"rabbit_user.read:*/* rabbit_user.write:*/*">>, maps:get(oauth2_scopes, Map5)),
+    ?assertEqual(<<"identityserver">>, maps:get(oauth2_implementation, Map5)),
+    %% Cleanup after IdentityServer
+    rabbit_ct_broker_helpers:rpc(Config, 0, application, unset_env,
+        [rabbitmq_management, enable_uaa]).
 
 disable_basic_auth_test(Config) ->
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
