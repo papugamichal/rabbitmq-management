@@ -3131,8 +3131,8 @@ oauth_test(Config) ->
     ?assertEqual(false, maps:get(enable_uaa, Map1)),
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map1)),
     ?assertEqual(<<>>, maps:get(uaa_location, Map1)),
-    ?assertEqual(uaa, maps:get(oauth2_implementation, Map1)),
-    
+    ?assertEqual(<<>>, maps:get(oauth2_scopes, Map1)),
+    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
     %% UAA Misconfiguration Part 1
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
                                  [rabbitmq_management, enable_uaa, true]),
@@ -3140,7 +3140,7 @@ oauth_test(Config) ->
     ?assertEqual(false, maps:get(enable_uaa, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_location, Map2)),
-    ?assertEqual(uaa, maps:get(oauth2_implementation, Map1)),
+    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
     %% UAA Misconfiguration Part 2
     rabbit_ct_broker_helpers:rpc(Config, 0, application, unset_env,
                                  [rabbitmq_management, oauth2_implementation]),
@@ -3148,7 +3148,7 @@ oauth_test(Config) ->
     ?assertEqual(false, maps:get(enable_uaa, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_location, Map2)),
-    ?assertEqual(uaa, maps:get(oauth2_implementation, Map1)),
+    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
     %% IdentityServer Misconfiguration Part 1
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
                                  [rabbitmq_management, enable_uaa, true]),
@@ -3158,7 +3158,7 @@ oauth_test(Config) ->
     ?assertEqual(false, maps:get(enable_uaa, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_client_id, Map2)),
     ?assertEqual(<<>>, maps:get(uaa_location, Map2)),
-    ?assertEqual(uaa, maps:get(oauth2_implementation, Map1)),
+    ?assertEqual(<<"uaa">>, maps:get(oauth2_implementation, Map1)),
     %% Valid config
     rabbit_ct_broker_helpers:rpc(Config, 0, application, set_env,
                                  [rabbitmq_management, uaa_client_id, "rabbit_user"]),
